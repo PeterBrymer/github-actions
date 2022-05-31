@@ -1,0 +1,23 @@
+name: deploy-azure-alerts
+description: Deploy alerts for the service to Azure.
+
+inputs:
+  bicepFile:
+    required: true
+    description: Bicep file
+  RESOURCEGROUP:
+    required: true
+    description: Resourcegroup
+secrets:
+  AZURE_CREDENTIALS:
+    required: true
+    description: Azure credentials
+
+runs:
+  using: "composite"
+  steps:
+    - uses: Azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    - name: Deploy Alerts To Azure
+      run: az deployment group create --resource-group ${{ inputs.RESOURCEGROUP }} --template-file  ${{ inputs.bicepFile }}
