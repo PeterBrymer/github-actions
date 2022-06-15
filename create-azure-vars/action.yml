@@ -1,0 +1,38 @@
+name: create-outputs
+description: "Create azure variables"
+
+inputs:
+  environment:
+    description: "Environment"
+    required: true
+  rg:
+    description: "Resource group"
+    required: true
+  AZURE_CREDENTIALS:
+    description: "Azure credentials"
+    required: true
+outputs:
+  aksName: 
+    description: "aksName"
+    value: ${{ steps.azurevars.outputs.aksName }}
+  apimName: 
+    description: "apimName"
+    value: ${{ steps.azurevars.outputs.apimName }}
+
+runs:
+  using: composite
+  steps:
+    - name: Azure Login
+      uses: Azure/login@v1.1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+        enable-AzPSSession: false
+    - run: |
+        echo "aksName=$(az resource list --resource-group ${{ inputs.rg }} --resource-type Microsoft.ContainerService/managedClusters --query [].name -otsv)" >> $GITHUB_ENV
+        echo "apimName=$(az resource list --resource-group ${{ inputs.rg }} --resource-type Microsoft.ApiManagement/service --query [].name -otsv)" >> $GITHUB_ENV
+      shell: bash
+    - id: azurevars
+      run: |
+        echo "::set-output name=aksName::$aksName"
+        echo "::set-output name=apimName::$apimName"
+      shell: bash
